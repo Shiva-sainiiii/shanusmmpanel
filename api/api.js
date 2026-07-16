@@ -223,6 +223,11 @@ module.exports = async (req, res) => {
                 return fail(res, 401, "AUTH_INVALID", "Invalid gatekeeper token.");
             }
 
+            // --- Login screen check — password only, no JAP call ---------
+            if (action === "verify") {
+                return res.status(200).json({ success: true });
+            }
+
             // --- Order status polling (single) ----------------------------
             if (action === "status") {
                 const { order_id } = payload;
