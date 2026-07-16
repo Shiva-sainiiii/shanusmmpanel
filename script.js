@@ -128,6 +128,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const ordersEmptyState = document.getElementById("orders-empty-state");
 
     // -------------------------------------------------------------
+    // Password persistence (sessionStorage only — cleared when the
+    // tab/browser closes; never sent anywhere except our own /api).
+    // -------------------------------------------------------------
+    const PASSWORD_SESSION_KEY = "smm_panel_password";
+
+    const savedPassword = sessionStorage.getItem(PASSWORD_SESSION_KEY);
+    if (savedPassword) {
+        passwordInput.value = savedPassword;
+    }
+
+    passwordInput.addEventListener("input", () => {
+        const value = passwordInput.value.trim();
+        if (value) {
+            sessionStorage.setItem(PASSWORD_SESSION_KEY, value);
+        } else {
+            sessionStorage.removeItem(PASSWORD_SESSION_KEY);
+        }
+    });
+
+    // -------------------------------------------------------------
     // Populate the service dropdown from SERVICE_CATALOG
     // -------------------------------------------------------------
     function renderServiceOptions() {
@@ -484,4 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderServiceOptions();
     renderServiceMeta();
     renderOrdersTable();
+    if (savedPassword) {
+        fetchBalance();
+    }
 });
