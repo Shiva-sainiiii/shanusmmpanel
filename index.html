@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Private SMM Gateway</title>
+    <!-- Tailwind CSS Engine -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col antialiased">
+
+    <!-- Header Grid Network -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 shadow-xl flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span class="text-2xl">⚡</span>
+            <h1 class="text-lg font-bold tracking-wider text-indigo-400 uppercase">Personal SMM Node</h1>
+        </div>
+        <div class="flex items-center space-x-2 text-sm text-slate-400">
+            <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Direct JAP Route Active</span>
+        </div>
+    </header>
+
+    <!-- Main Container Frame -->
+    <main class="flex-1 max-w-3xl w-full mx-auto p-4 md:p-8 flex flex-col space-y-6">
+
+        <!-- Live Balance Tracker Card -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-2xl flex items-center justify-between">
+            <div>
+                <p class="text-xs uppercase tracking-wider text-slate-400 mb-1">JAP Wallet Balance</p>
+                <p id="balance-value" class="text-2xl font-bold text-white">—</p>
+                <p id="balance-status" class="text-xs text-slate-500 mt-1">Enter password to load balance</p>
+            </div>
+            <button id="refresh-balance-btn" type="button"
+                    class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium px-4 py-2 rounded-xl transition cursor-pointer border border-slate-700">
+                ↻ Refresh
+            </button>
+        </div>
+
+        <!-- Order Trigger Card -->
+        <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-2xl space-y-6">
+
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-xl font-semibold text-white">Trigger Live Order</h2>
+                <p class="text-xs text-slate-400 mt-1">Directly routes execution commands bypassing storage nodes.</p>
+            </div>
+
+            <!-- Master SMM Form -->
+            <form id="order-form" class="space-y-4">
+
+                <!-- Security Token Box -->
+                <div>
+                    <label class="block text-xs font-medium uppercase tracking-wider text-slate-400 mb-2">Gatekeeper Password</label>
+                    <input type="password" id="admin-password" placeholder="••••••••" required autocomplete="current-password"
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl p-3 text-white transition placeholder-slate-700 outline-none">
+                </div>
+
+                <!-- API Server Target Service -->
+                <div>
+                    <label class="block text-xs font-medium uppercase tracking-wider text-slate-400 mb-2">Target Service Network</label>
+                    <select id="service-id" class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl p-3 text-white transition outline-none cursor-pointer">
+                        <!-- Populated dynamically by script.js from SERVICE_CATALOG -->
+                    </select>
+                </div>
+
+                <!-- Dynamic Service Metadata Box -->
+                <div id="service-meta" class="hidden bg-slate-950 border border-slate-800 rounded-xl p-4 grid grid-cols-3 gap-3 text-center">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-500">Speed</p>
+                        <p id="meta-speed" class="text-xs text-slate-200 mt-1">—</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-500">Limit Range</p>
+                        <p id="meta-min" class="text-xs text-slate-200 mt-1">—</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-500">Est. Total Price</p>
+                        <p id="meta-price" class="text-xs text-emerald-400 font-semibold mt-1">—</p>
+                    </div>
+                </div>
+
+                <!-- Instagram/Other Link Input -->
+                <div>
+                    <label class="block text-xs font-medium uppercase tracking-wider text-slate-400 mb-2">Target Account URL</label>
+                    <input type="url" id="target-link" placeholder="https://instagram.com" required
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl p-3 text-white transition placeholder-slate-700 outline-none">
+                </div>
+
+                <!-- Numerical Volume Load -->
+                <div>
+                    <label class="block text-xs font-medium uppercase tracking-wider text-slate-400 mb-2">Volume Load (Quantity)</label>
+                    <input type="number" id="quantity" placeholder="Min: 100" min="50" required
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl p-3 text-white transition placeholder-slate-700 outline-none">
+                </div>
+
+                <!-- Submit Button Engine -->
+                <button type="submit" id="submit-btn"
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-indigo-950/50 mt-2 cursor-pointer flex justify-center items-center space-x-2">
+                    <span>Deploy Action</span>
+                </button>
+
+            </form>
+        </div>
+
+        <!-- Activity Feed / Orders Log -->
+        <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-2xl space-y-4">
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-xl font-semibold text-white">Activity Feed</h2>
+                <p class="text-xs text-slate-400 mt-1">Locally cached order history — lives only in this browser's LocalStorage.</p>
+            </div>
+
+            <div class="overflow-x-auto max-h-80 overflow-y-auto rounded-xl border border-slate-800">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-950 sticky top-0">
+                        <tr>
+                            <th class="py-2 px-3 text-[10px] uppercase tracking-wider text-slate-500">Order ID</th>
+                            <th class="py-2 px-3 text-[10px] uppercase tracking-wider text-slate-500">Service</th>
+                            <th class="py-2 px-3 text-[10px] uppercase tracking-wider text-slate-500">Link</th>
+                            <th class="py-2 px-3 text-[10px] uppercase tracking-wider text-slate-500">Qty</th>
+                            <th class="py-2 px-3 text-[10px] uppercase tracking-wider text-slate-500">Time</th>
+                            <th class="py-2 px-3 text-[10px] uppercase tracking-wider text-slate-500">Status</th>
+                            <th class="py-2 px-3 text-[10px] uppercase tracking-wider text-slate-500">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body">
+                        <!-- Populated dynamically by script.js from LocalStorage -->
+                    </tbody>
+                </table>
+                <p id="orders-empty-state" class="hidden text-center text-xs text-slate-500 py-6">
+                    No orders yet. Deploy an action above to populate this feed.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
