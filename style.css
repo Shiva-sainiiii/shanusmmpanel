@@ -1,0 +1,100 @@
+/* ----------------------------------------------------
+   GLOBAL TRANSITIONS & BASE TUNING
+   ---------------------------------------------------- */
+
+/* Smooth focus animation for all form controls */
+input, select, button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Chrome, Safari, Edge, Opera me number field ke default buttons hatane ke liye */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox me number fields ke inner buttons hatane ke liye */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Custom selection highlight matching the indigo accent theme */
+::selection {
+    background-color: rgb(79, 70, 229);
+    color: #ffffff;
+}
+
+/* ----------------------------------------------------
+   ANIMATION KEYFRAMES
+   ---------------------------------------------------- */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* ----------------------------------------------------
+   UTILITY: hidden (used by JS to toggle meta box / empty state
+   without relying on the Tailwind CDN's JIT class list)
+   ---------------------------------------------------- */
+.hidden {
+    display: none !important;
+}
+
+/* ----------------------------------------------------
+   ORDERS TABLE / ACTIVITY FEED POLISH
+   ---------------------------------------------------- */
+
+/* Thin, theme-matching scrollbar for the scrollable orders feed */
+#orders-table-body,
+.overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(51, 65, 85) rgb(2, 6, 23);
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+    background: rgb(2, 6, 23);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background-color: rgb(51, 65, 85);
+    border-radius: 999px;
+}
+
+/* Status pill fade-in whenever it's re-rendered after a status poll */
+.status-pill {
+    animation: pill-fade 0.25s ease-out;
+}
+
+@keyframes pill-fade {
+    from {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Prevent long links from breaking table layout */
+#orders-table-body td {
+    white-space: nowrap;
+}
+
+#orders-table-body td.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
