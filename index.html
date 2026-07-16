@@ -10,6 +10,29 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col antialiased">
 
+    <!-- Login Gate — covers everything until password is verified -->
+    <div id="login-overlay" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
+        <form id="login-form" class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 w-full max-w-sm space-y-5">
+            <div class="text-center space-y-1">
+                <span class="text-3xl">🔒</span>
+                <h1 class="text-lg font-bold tracking-wider text-indigo-400 uppercase">Personal SMM Node</h1>
+                <p class="text-xs text-slate-500">Enter your gatekeeper password to continue</p>
+            </div>
+            <div>
+                <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" autofocus
+                       class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl p-3 text-white transition placeholder-slate-700 outline-none">
+            </div>
+            <p id="login-error" class="hidden text-xs text-rose-400 text-center"></p>
+            <button type="submit" id="login-submit-btn"
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-indigo-950/50 cursor-pointer flex justify-center items-center space-x-2">
+                <span>Unlock Panel</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- App shell — hidden until login succeeds -->
+    <div id="app-shell" class="hidden flex-col min-h-screen">
+
     <!-- Header Grid Network -->
     <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 shadow-xl flex justify-between items-center">
         <div class="flex items-center space-x-2">
@@ -48,13 +71,6 @@
 
             <!-- Master SMM Form -->
             <form id="order-form" class="space-y-4">
-
-                <!-- Security Token Box -->
-                <div>
-                    <label class="block text-xs font-medium uppercase tracking-wider text-slate-400 mb-2">Gatekeeper Password</label>
-                    <input type="password" id="admin-password" placeholder="••••••••" required autocomplete="current-password"
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl p-3 text-white transition placeholder-slate-700 outline-none">
-                </div>
 
                 <!-- API Server Target Service -->
                 <div>
@@ -134,6 +150,8 @@
         </div>
 
     </main>
+
+    </div> <!-- /app-shell -->
 
     <script src="script.js"></script>
 </body>
