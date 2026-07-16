@@ -108,12 +108,110 @@ function updateOrderStatus(orderId, statusPatch) {
 // 3. DOM wiring
 // ---------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
+    // -------------------------------------------------------------
+    // Login gate
+    // -------------------------------------------------------------
+    const PASSWORD_SESSION_KEY = "smm_panel_password";
+
+    const loginOverlay = document.getElementById("login-overlay");
+    const appShell = document.getElementById("app-shell");
+    const loginForm = document.getElementById("login-form");
+    const loginPasswordInput = document.getElementById("login-password");
+    const loginError = document.getElementById("login-error");
+    const loginSubmitBtn = document.getElementById("login-submit-btn");
+
+    /** Returns the verified session password, or null if not logged in. */
+    function getPassword() {
+        return sessionStorage.getItem(PASSWORD_SESSION_KEY);
+    }
+
+    let appInitialized = false;
+
+    function showApp() {
+        loginOverlay.classList.add("hidden");
+        appShell.classList.remove("hidden");
+        appShell.classList.add("flex");
+        if (!appInitialized) {
+            appInitialized = true;
+            initApp(); // wire up the rest of the panel now that we're unlocked
+        }
+    }
+
+    async function attemptLogin(candidate) {
+        loginError.classList.add("hidden");
+        loginSubmitBtn.disabled = true;
+        const originalText = loginSubmitBtn.innerHTML;
+        loginSubmitBtn.innerHTML = "<span>Verifying...</span>";
+
+        try {
+            const response = await fetch("/api", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: candidate, action: "verify" }),
+            });
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                sessionStorage.setItem(PASSWORD_SESSION_KEY, candidate);
+                showApp();
+            } else {
+                loginError.textContent = data.error || "Incorrect password.";
+                loginError.classList.remove("hidden");
+                loginPasswordInput.value = "";
+                loginPasswordInput.focus();
+            }
+        } catch (err) {
+            console.error("Login verify failed:", err);
+            loginError.textContent = "Network error — couldn't reach the server.";
+            loginError.classList.remove("hidden");
+        } finally {
+            loginSubmitBtn.disabled = false;
+            loginSubmitBtn.innerHTML = originalText;
+        }
+    }
+
+    loginForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const candidate = loginPasswordInput.value.trim();
+        if (candidate) attemptLogin(candidate);
+    });
+
+    // Already have a password from an earlier visit this session? Verify
+    // it silently before trusting it — it may have been revoked/rotated.
+    const existingPassword = getPassword();
+    if (existingPassword) {
+        attemptSilentReverify(existingPassword);
+    }
+
+    async function attemptSilentReverify(candidate) {
+        try {
+            const response = await fetch("/api", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: candidate, action: "verify" }),
+            });
+            const data = await response.json();
+            if (response.ok && data.success) {
+                showApp();
+            } else {
+                sessionStorage.removeItem(PASSWORD_SESSION_KEY);
+            }
+        } catch (err) {
+            // Network hiccup — don't lock the user out, just let them
+            // retry via the visible login form instead of stalling silently.
+            console.error("Session re-verify failed:", err);
+        }
+    }
+
+    // -------------------------------------------------------------
+    // Everything below only runs once the login gate is passed
+    // -------------------------------------------------------------
+    function initApp() {
     const orderForm = document.getElementById("order-form");
     const submitBtn = document.getElementById("submit-btn");
     const serviceSelect = document.getElementById("service-id");
     const quantityInput = document.getElementById("quantity");
     const linkInput = document.getElementById("target-link");
-    const passwordInput = document.getElementById("admin-password");
 
     const metaBox = document.getElementById("service-meta");
     const metaSpeed = document.getElementById("meta-speed");
@@ -126,26 +224,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const ordersTableBody = document.getElementById("orders-table-body");
     const ordersEmptyState = document.getElementById("orders-empty-state");
-
-    // -------------------------------------------------------------
-    // Password persistence (sessionStorage only — cleared when the
-    // tab/browser closes; never sent anywhere except our own /api).
-    // -------------------------------------------------------------
-    const PASSWORD_SESSION_KEY = "smm_panel_password";
-
-    const savedPassword = sessionStorage.getItem(PASSWORD_SESSION_KEY);
-    if (savedPassword) {
-        passwordInput.value = savedPassword;
-    }
-
-    passwordInput.addEventListener("input", () => {
-        const value = passwordInput.value.trim();
-        if (value) {
-            sessionStorage.setItem(PASSWORD_SESSION_KEY, value);
-        } else {
-            sessionStorage.removeItem(PASSWORD_SESSION_KEY);
-        }
-    });
 
     // -------------------------------------------------------------
     // Populate the service dropdown from SERVICE_CATALOG
@@ -196,7 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Balance tracker
     // -------------------------------------------------------------
     async function fetchBalance() {
-        const password = passwordInput.value.trim();
+        const password = getPassword();
         if (!password) {
             balanceStatusEl.textContent = "Enter password to load balance";
             balanceValueEl.textContent = "—";
@@ -235,12 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     refreshBalanceBtn?.addEventListener("click", fetchBalance);
-    // Auto-fetch on page load IF a password is already present (e.g. browser autofill).
-    // Otherwise waits for the user to type it and hit refresh.
-    if (passwordInput.value.trim()) fetchBalance();
-    passwordInput.addEventListener("blur", () => {
-        if (passwordInput.value.trim()) fetchBalance();
-    });
+    // Balance is fetched once right after login succeeds (see showApp()).
 
     // -------------------------------------------------------------
     // Orders table rendering
@@ -314,7 +387,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!btn) return;
 
         const orderId = btn.dataset.orderId;
-        const password = passwordInput.value.trim();
+        const password = getPassword();
         if (!password) {
             alert("Enter your gatekeeper password first to poll status.");
             return;
@@ -356,7 +429,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!btn) return;
 
         const orderId = btn.dataset.orderId;
-        const password = passwordInput.value.trim();
+        const password = getPassword();
         if (!password) {
             alert("Enter your gatekeeper password first to request a refill.");
             return;
@@ -399,7 +472,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!btn) return;
 
         const orderId = btn.dataset.orderId;
-        const password = passwordInput.value.trim();
+        const password = getPassword();
         if (!password) {
             alert("Enter your gatekeeper password first to cancel an order.");
             return;
@@ -449,7 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
     orderForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        const password = passwordInput.value.trim();
+        const password = getPassword();
         const service_id = serviceSelect.value;
         const link = linkInput.value.trim();
         const quantity = parseInt(quantityInput.value, 10);
@@ -499,12 +572,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // -------------------------------------------------------------
-    // Init
+    // Init (runs once, right after login succeeds)
     // -------------------------------------------------------------
     renderServiceOptions();
     renderServiceMeta();
     renderOrdersTable();
-    if (savedPassword) {
-        fetchBalance();
-    }
+    fetchBalance(); // we're only inside initApp() once already logged in
+    } // /initApp
 });
